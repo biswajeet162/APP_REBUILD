@@ -20,3 +20,5 @@ Authorized reconstruction pipeline: analyze a decompiled dump, copy a Kotlin or 
 | **Everything else** | `kotlin_app_template` |
 
 Templates live in `project-template/`. Skills live in `.cursor/skills/`. See `AGENTS.md` and `skills/README.md`.
+
+**Unity APK / Play Store export steps:** [`UNITY_INSTRUCTION.md`](UNITY_INSTRUCTION.md)

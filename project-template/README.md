@@ -11,6 +11,8 @@ Only **two** starters are used by the pipeline:
 
 **Unity Android issues?** See `unity_app_template/UNITY_ANDROID_RUNBOOK.md`.
 
+**Export APK / AAB (share & Play Store)?** See `unity_app_template/UNITY_BUILD_APK.md`.
+
 Legacy folders (`flutter_app_template`, `react_native_app_template`) are not used by current skills.
 
 ## Unity new-game flow

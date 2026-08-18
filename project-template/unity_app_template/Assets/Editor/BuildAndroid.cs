@@ -47,6 +47,84 @@ public static class BuildAndroid
         Debug.Log("Android APK built at: " + apkPath);
     }
 
+    public static void BuildReleaseApk()
+    {
+        BuildAndroidPlayer(
+            outputFileName: "app-release.apk",
+            development: false,
+            appBundle: false,
+            buildOptions: BuildOptions.None);
+    }
+
+    public static void BuildAppBundle()
+    {
+        BuildAndroidPlayer(
+            outputFileName: "app-release.aab",
+            development: false,
+            appBundle: true,
+            buildOptions: BuildOptions.None);
+    }
+
+    static void BuildAndroidPlayer(
+        string outputFileName,
+        bool development,
+        bool appBundle,
+        BuildOptions buildOptions)
+    {
+        const string scenePath = "Assets/Scenes/SampleScene.unity";
+        EnsureScene(scenePath);
+
+        ConfigureAndroidToolchain();
+        ApplyReleaseSigningFromEnvironment();
+
+        var outputDir = "Builds/Android";
+        Directory.CreateDirectory(outputDir);
+        var outputPath = Path.Combine(outputDir, outputFileName);
+
+        EditorUserBuildSettings.development = development;
+        EditorUserBuildSettings.androidBuildSystem = AndroidBuildSystem.Gradle;
+        EditorUserBuildSettings.buildAppBundle = appBundle;
+
+        var options = new BuildPlayerOptions
+        {
+            scenes = new[] { scenePath },
+            locationPathName = outputPath,
+            target = BuildTarget.Android,
+            options = buildOptions,
+        };
+
+        BuildReport report = BuildPipeline.BuildPlayer(options);
+        if (report.summary.result != BuildResult.Succeeded)
+        {
+            throw new Exception("Android build failed: " + report.summary.result);
+        }
+
+        Debug.Log("Android build output: " + outputPath);
+    }
+
+    static void ApplyReleaseSigningFromEnvironment()
+    {
+        var keystorePath = Environment.GetEnvironmentVariable("ANDROID_KEYSTORE_PATH");
+        var keystorePass = Environment.GetEnvironmentVariable("ANDROID_KEYSTORE_PASS");
+        var keyAlias = Environment.GetEnvironmentVariable("ANDROID_KEY_ALIAS");
+        var keyAliasPass = Environment.GetEnvironmentVariable("ANDROID_KEY_ALIAS_PASS");
+
+        if (string.IsNullOrWhiteSpace(keystorePath) ||
+            string.IsNullOrWhiteSpace(keystorePass) ||
+            string.IsNullOrWhiteSpace(keyAlias))
+        {
+            Debug.LogWarning(
+                "Release signing env vars not set (ANDROID_KEYSTORE_PATH, ANDROID_KEYSTORE_PASS, ANDROID_KEY_ALIAS). Using debug signing.");
+            return;
+        }
+
+        PlayerSettings.Android.useCustomKeystore = true;
+        PlayerSettings.Android.keystoreName = keystorePath;
+        PlayerSettings.Android.keystorePass = keystorePass;
+        PlayerSettings.Android.keyaliasName = keyAlias;
+        PlayerSettings.Android.keyaliasPass = string.IsNullOrWhiteSpace(keyAliasPass) ? keystorePass : keyAliasPass;
+    }
+
     private static void EnsureScene(string scenePath)
     {
         if (File.Exists(scenePath))

@@ -45,7 +45,9 @@ adb shell am start -n com.example.unity_app_template/com.unity3d.player.UnityPla
 - Android SDK; NDK **27.2.12479018** (Unity 6000.5 requirement)
 - Short paths recommended on Windows (`D:\gradle`, `D:\tmp` for Gradle cache)
 
-**Troubleshooting:** see **[UNITY_ANDROID_RUNBOOK.md](UNITY_ANDROID_RUNBOOK.md)** — all issues, fixes, and tricks from first device deploy.
+**Troubleshooting:** see **[UNITY_ANDROID_RUNBOOK.md](UNITY_ANDROID_RUNBOOK.md)** — issues and fixes from first device deploy.
+
+**Export APK / Play Store:** see **[UNITY_BUILD_APK.md](UNITY_BUILD_APK.md)** — debug APK, release APK, AAB, and share/upload steps.
 
 ## Stage 3
 
