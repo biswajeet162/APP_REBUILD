@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.example.kotlin_app_template.app-mergeDebugResources-44:/values-v30/values-v30.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\biswa\\AppData\\Local\\Temp\\cursor-sandbox-cache\\eb799f7aa16300be39536008b14dd4b6\\gradle\\caches\\9.4.1\\transforms\\bbd0f1840a3b891a15eaba10c708425a\\transformed\\material3-release\\res\\values-v30\\values-v30.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "72",
+                        "endOffsets": "123"
+                    }
+                }
+            ]
+        }
+    ]
+}

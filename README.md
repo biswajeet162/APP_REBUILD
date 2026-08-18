@@ -8,7 +8,7 @@ Authorized reconstruction pipeline: analyze a decompiled dump, copy a clean temp
 2. In Cursor, ask to **analyze** or **rebuild** the project.
 3. The agent follows `.cursor/skills/`:
    1. Analyze → `analysis/`
-   2. Create (copy Flutter or React Native template) → `new-project/`
+   2. Create (copy Flutter, React Native, or Kotlin template) → `new-project/`
    3. Reconstruct owned UI/behavior in `new-project/`
    4. Play policy audit → `compliance/`
 

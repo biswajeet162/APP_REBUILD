@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Kotlin App Template</string>
+    <string name="home_title">Kotlin App Template</string>
+    <string name="home_subtitle">Stage 2 starter — rebuild UI in Stage 3</string>
+</resources>

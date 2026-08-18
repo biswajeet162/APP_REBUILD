@@ -7,7 +7,7 @@ This repo is a **four-stage pipeline** for apps you **own or are authorized** to
 | Folder | What you do |
 |--------|-------------|
 | `project/` | Paste the decompiled/extracted app here, then ask the agent to analyze or rebuild. |
-| `project-template/` | Clean starters: Flutter and React Native. Do not dump APKs here. |
+| `project-template/` | Clean starters: Flutter, React Native, and Kotlin native. Do not dump APKs here. |
 | `analysis/` | Created by Stage 1. |
 | `new-project/` | Created by Stage 2, filled in by Stage 3. |
 | `compliance/` | Created by Stage 4. |

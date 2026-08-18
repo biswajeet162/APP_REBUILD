@@ -14,4 +14,4 @@ The `*.env` files in this folder are the original notes. Prefer the `SKILL.md` f
 | 4 | `play-policy-compliance` | all of the above | `compliance/` |
 | — | `project-rebuild-pipeline` | non-empty `project/` | runs 1→4 |
 
-Templates today: `project-template/flutter_app_template`, `project-template/react_native_app_template`.
+Templates today: `project-template/flutter_app_template`, `project-template/react_native_app_template`, `project-template/kotlin_app_template`.

@@ -65,7 +65,7 @@ Create `analysis/` and write:
   "lost_in_decompilation": [],
   "confirmed": [],
   "inferred": [],
-  "recommended_template": "flutter_app_template|react_native_app_template|scaffold_native|none",
+  "recommended_template": "flutter_app_template|react_native_app_template|kotlin_app_template|none",
   "ownership_assumption": "user_owns|unconfirmed"
 }
 ```

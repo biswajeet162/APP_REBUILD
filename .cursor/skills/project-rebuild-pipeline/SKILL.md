@@ -18,7 +18,7 @@ Run this pipeline for apps the user **owns or is explicitly authorized** to rebu
 | Path | Role |
 |------|------|
 | `project/` | User drops the decompiled/extracted app here. Do not invent contents. |
-| `project-template/` | Clean starters. Currently `flutter_app_template` and `react_native_app_template`. |
+| `project-template/` | Clean starters: `flutter_app_template`, `react_native_app_template`, `kotlin_app_template`. |
 | `analysis/` | Stage 1 reports. Create this folder. |
 | `new-project/` | Stage 2 scaffold, then Stage 3 reconstruction. |
 | `compliance/` | Stage 4 Play policy reports. |

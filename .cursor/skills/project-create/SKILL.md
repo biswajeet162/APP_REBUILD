@@ -27,7 +27,8 @@ If those files are missing, run [project-analyze](../project-analyze/SKILL.md) f
 |-----------------------|--------|
 | `flutter` | Copy `project-template/flutter_app_template` → `new-project/` |
 | `react_native` | Copy `project-template/react_native_app_template` → `new-project/` |
-| `kotlin` / `java` | No template. Scaffold a current Android Gradle Kotlin (or Java) app into `new-project/`. |
+| `kotlin` | Copy `project-template/kotlin_app_template` → `new-project/` |
+| `java` | Copy `project-template/kotlin_app_template` → `new-project/` (pure Kotlin starter; rewrite in Java in Stage 3 only if required) |
 | `ionic` / `capacitor` / `cordova` | Scaffold with the official Ionic/Capacitor CLI into `new-project/`. |
 | `unity` / `unreal` / `godot` / `maui` / `unknown` | Do **not** guess. Write `new-project/PROJECT_STATUS.md` explaining why a mobile template was not copied. Stop. |
 
@@ -39,6 +40,8 @@ Run from the workspace root:
 powershell -File .cursor/skills/project-create/scripts/copy-template.ps1 -Technology flutter
 # or
 powershell -File .cursor/skills/project-create/scripts/copy-template.ps1 -Technology react_native
+# or
+powershell -File .cursor/skills/project-create/scripts/copy-template.ps1 -Technology kotlin
 ```
 
 The script **replaces** `new-project/` and excludes `node_modules`, `build`, `.dart_tool`, `.gradle`, `.idea`, `.cxx`, `Pods`.
@@ -60,7 +63,8 @@ Then:
 
 1. Flutter: `flutter pub get` in `new-project/`. Optionally rename `pubspec.yaml` `name` and Android `applicationId`/`namespace`.
 2. React Native: `npm install` in `new-project/` (never copy `node_modules`).
-3. Leave a working Hello/diagnostic screen from the template.
+3. Kotlin native: ensure `local.properties` has `sdk.dir`. Optionally rename package/`applicationId`/app label.
+4. Leave a working Hello/diagnostic screen from the template.
 
 Add empty layers only as stubs if the reconstruction plan needs them (e.g. `lib/screens/`, `src/screens/`, `src/services/`) — no fake business logic.
 
@@ -70,7 +74,7 @@ From `new-project/`:
 
 - Flutter: `flutter build apk --debug`
 - React Native Android: `npm run android` is optional; required compile check is `cd android; .\gradlew.bat assembleDebug`
-- Native Gradle: `.\gradlew.bat assembleDebug`
+- Kotlin native: `.\gradlew.bat assembleDebug` from `new-project/`
 
 Fix scaffold errors until compile succeeds. Do not start Stage 3 on a broken project.
 

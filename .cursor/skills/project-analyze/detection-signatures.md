@@ -25,13 +25,13 @@ High-confidence files:
 
 Notes: Hermes bytecode is often not human-readable. If only bytecode exists, reconstruct screens from native resources + inferred navigation, and mark JS as lost.
 
-## Native Android (Kotlin/Java) — `recommended_template`: `scaffold_native`
+## Native Android (Kotlin/Java) — `recommended_template`: `kotlin_app_template`
 
 - `AndroidManifest.xml` + `res/` + `smali/` or jadx `sources/`
 - No Flutter/RN/engine libs
 - Kotlin (`kotlinx`, `.kt`) vs Java from source/smali patterns
 
-There is no native template in `project-template/` yet. Stage 2 must scaffold a Gradle Kotlin (or Java) app.
+Stage 2 copies `project-template/kotlin_app_template` (pure Kotlin + Jetpack Compose). Use Java only in Stage 3 if the analyzed app was Java-only and the user requires it.
 
 ## Ionic / Capacitor / Cordova — `recommended_template`: `none` (CLI scaffold)
 

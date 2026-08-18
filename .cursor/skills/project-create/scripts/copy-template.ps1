@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet("flutter", "react_native")]
+    [ValidateSet("flutter", "react_native", "kotlin")]
     [string]$Technology
 )
 
@@ -9,6 +9,7 @@ $ErrorActionPreference = "Stop"
 $templateMap = @{
     flutter      = "project-template\flutter_app_template"
     react_native = "project-template\react_native_app_template"
+    kotlin       = "project-template\kotlin_app_template"
 }
 
 $workspace = (Get-Location).Path

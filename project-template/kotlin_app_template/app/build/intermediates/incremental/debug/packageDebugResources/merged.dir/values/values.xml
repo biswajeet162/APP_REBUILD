@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kotlin App Template</string>
+    <string name="home_subtitle">Stage 2 starter — rebuild UI in Stage 3</string>
+    <string name="home_title">Kotlin App Template</string>
+    <style name="Theme.KotlinAppTemplate" parent="android:Theme.Material.Light.NoActionBar"/>
+</resources>
