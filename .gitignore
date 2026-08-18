@@ -1,0 +1,8 @@
+# User-supplied decompiled dumps (often large; do not commit by default)
+project/*
+!project/README.md
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store

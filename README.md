@@ -1,6 +1,15 @@
-Android Project Reconstruction Skills — 4 stages
+# Android rebuild workspace
 
-1. Analyze
-2. Copy a prebuilt technology template
-3. Reconstruct authorized functionality/UI
-4. Audit Google Play policy, IP/provenance, privacy, security and release readiness.
+Authorized reconstruction pipeline: analyze a decompiled dump, copy a clean template, rebuild owned functionality, then audit Google Play policy.
+
+## How to use
+
+1. Paste your decompiled/extracted app into [`project/`](project/).
+2. In Cursor, ask to **analyze** or **rebuild** the project.
+3. The agent follows `.cursor/skills/`:
+   1. Analyze → `analysis/`
+   2. Create (copy Flutter or React Native template) → `new-project/`
+   3. Reconstruct owned UI/behavior in `new-project/`
+   4. Play policy audit → `compliance/`
+
+Templates live in `project-template/`. Skills live in `.cursor/skills/`. See `AGENTS.md` and `skills/README.md`.
