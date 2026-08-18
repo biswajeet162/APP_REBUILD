@@ -268,9 +268,7 @@ Select-String -Path $LOG -Pattern "error|Error|Exception|Build Finished" | Selec
 
 ## Build APK and send on WhatsApp
 
-For `name-show`. Change the path if your game folder is different.
-
-**1. Set paths (PowerShell)**
+Copy **all** of this into PowerShell at once (do not run only the `Start-Process` line):
 
 ```powershell
 $UNITY = "C:\Program Files\Unity\Hub\Editor\6000.5.8f1\Editor\Unity.exe"
@@ -278,25 +276,15 @@ $PROJECT = "D:\name-show"
 $env:GRADLE_USER_HOME = "D:\gradle"
 $env:TEMP = "D:\tmp"
 $env:TMP = "D:\tmp"
-```
 
-**2. Build the APK**
-
-```powershell
 Start-Process $UNITY -ArgumentList "-batchmode -quit -nographics -projectPath $PROJECT -buildTarget Android -executeMethod BuildAndroid.BuildDebugApk -logFile $PROJECT\Builds\Android\unity-build.log" -Wait -NoNewWindow
-```
 
-**3. Open the APK folder**
-
-```powershell
 explorer "$PROJECT\Builds\Android"
 ```
 
-**4. Send on WhatsApp**
+Wait until it finishes (a few minutes). Then send this file on WhatsApp:
 
-Send this file to your friend:
+`D:\name-show\Builds\Android\unity-template-debug.apk`
 
-`unity-template-debug.apk`
-
-On their phone: open the file → allow **Install unknown apps** → Install → open **Name Show**.
+Your friend: open the file → allow **Install unknown apps** → Install → open **Name Show**.
 
