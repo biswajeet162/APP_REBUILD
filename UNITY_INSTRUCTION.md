@@ -1,3 +1,16 @@
+$UNITY = "C:\Program Files\Unity\Hub\Editor\6000.5.8f1\Editor\Unity.exe"
+$PROJECT = "D:\name-show"
+$env:GRADLE_USER_HOME = "D:\gradle"
+$env:TEMP = "D:\tmp"
+$env:TMP = "D:\tmp"
+
+Start-Process $UNITY -ArgumentList "-batchmode -quit -nographics -projectPath $PROJECT -buildTarget Android -executeMethod BuildAndroid.BuildDebugApk -logFile $PROJECT\Builds\Android\unity-build.log" -Wait -NoNewWindow
+
+explorer "$PROJECT\Builds\Android"
+
+
+
+################################################################################################################################################################################################################################################################################################################
 # Unity instruction
 
 How to create a Unity game project from the template, build it as an Android **APK** (share with friends), and export an **AAB** for Google Play.
