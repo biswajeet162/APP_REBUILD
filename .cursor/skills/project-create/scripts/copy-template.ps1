@@ -48,7 +48,8 @@ $excludeDirs = @(
     "Temp",
     "Logs",
     "obj",
-    "UserSettings"
+    "UserSettings",
+    "Builds"
 )
 
 $robocopyArgs = @(

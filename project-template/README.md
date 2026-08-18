@@ -2,11 +2,23 @@
 
 Only **two** starters are used by the pipeline:
 
-| Template | Use when |
-|----------|----------|
-| `kotlin_app_template/` | Non-game apps (utilities, finance, tools, etc.) |
-| `unity_app_template/` | Games |
+| Template | Use when | Editable? |
+|----------|----------|-----------|
+| `kotlin_app_template/` | Non-game apps | **Base only** — copy to `{name}/`, work in the copy |
+| `unity_app_template/` | Games | **Base only** — copy to `{name}/`, work in the copy |
 
-Legacy folders (`flutter_app_template`, `react_native_app_template`) are not used by current skills. Do not copy them in Stage 2.
+**Never modify these template folders for a specific app.** Always copy first, then build in `{project-name}/`.
 
-Stage 2 copies one of the two templates above into a **named folder** at the repo root.
+**Unity Android issues?** See `unity_app_template/UNITY_ANDROID_RUNBOOK.md`.
+
+Legacy folders (`flutter_app_template`, `react_native_app_template`) are not used by current skills.
+
+## Unity new-game flow
+
+1. Ask user: **What is the game name?** (e.g. `2d-racer`)
+2. Copy: `project-template/unity_app_template` → `{game-name}/`
+3. Build/reconstruct in `{game-name}/` (Stage 3 / `/build`)
+
+```powershell
+powershell -File .cursor/skills/project-create/scripts/copy-template.ps1 -Technology unity -ProjectName 2d-racer
+```

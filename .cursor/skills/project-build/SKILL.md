@@ -1,83 +1,93 @@
 ---
 name: project-build
 description: >-
-  Reconstructs authorized UI and functionality inside the Stage 2 project folder
-  from Stage 1 analysis and the decompiled dump in project/. Clean-room rebuild,
-  not a proprietary-source copy. Use when the user asks to build, reconstruct,
-  port screens, copy owned assets, Stage 3, or project-build.
+  Stage 3 — reconstructs authorized UI and functionality inside the named project
+  folder (e.g. 2d-racer/, calculator/) copied from kotlin or unity template. Triggered
+  by /build, build, reconstruct, or project-build. Never edit project-template/ in
+  place; work only in the user's project folder.
 ---
 
 # PROJECT_BUILD (Stage 3)
 
-Act as a senior reconstruction engineer. Work **in** the project folder created by Stage 2 (e.g. `calculator/`, `2d-game/` — see `analysis/project-create-status.json` → `project_folder`). The dump in `project/` is a **reference**, not a file tree to paste over the new app.
+Act as a senior reconstruction engineer. Work **only** in the user's project folder (e.g. `2d-racer/`, `calculator/`) — **never** in `project-template/`.
+
+## Triggers
+
+- User says **`/build`**, **build**, **reconstruct**, or **project-build**
+- User wants to implement features on top of an existing copied project
+
+## Before building — confirm project folder
+
+1. Check `analysis/project-create-status.json` → `project_folder`, **or**
+2. Ask the user which project folder to use, **or**
+3. If no project exists yet and it's a **Unity game**: run [project-create](../project-create/SKILL.md) first — **ask game name**, copy `unity_app_template` → `{game-name}/`
+
+If `{project_folder}/` is missing, create it via Stage 2 before writing code.
 
 ## Inputs
 
-- `project/` (authorized reference)
-- `analysis/analysis-report.md`
-- `analysis/technology-detection.json`
-- `analysis/reconstruction-plan.md`
-- `analysis/project-create-status.json` (project folder name and template)
-- `{project_folder}/` that already **compiles** (Kotlin) or opens in Unity (games)
+- `project/` (authorized reference dump, if rebuilding from decompile)
+- `analysis/*` (when available)
+- `{project_folder}/` — the copied Kotlin or Unity project
 
-If the Stage 2 folder is missing or Kotlin scaffold does not build, run [project-create](../project-create/SKILL.md) first.
+## Unity build workflow
+
+All Unity code changes go in `{game-name}/`, not the template:
+
+```
+{game-name}/
+  Assets/Scripts/       ← game logic here
+  Assets/Scenes/        ← scenes here
+  Assets/Editor/        ← BuildAndroid.cs (from template copy)
+```
+
+After code changes, build to phone:
+
+```powershell
+$env:GRADLE_USER_HOME = "D:\gradle"
+$env:TEMP = "D:\tmp"
+$env:TMP = "D:\tmp"
+adb install -r Builds\Android\unity-template-debug.apk
+```
+
+Use `BuildAndroid.BuildDebugApk` from the copied project (see `unity_app_template` README).
+
+**Windows Android build issues:** read `project-template/unity_app_template/UNITY_ANDROID_RUNBOOK.md` first (NDK version, path length, Gradle cache, launch activity).
+
+## Kotlin build workflow
+
+All Kotlin changes go in `{app-name}/app/src/main/kotlin/...`. Build with `.\gradlew.bat assembleDebug`.
 
 ## Legal boundary
 
-This is for apps the user owns or is authorized to rebuild.
+For apps the user owns or is authorized to rebuild:
 
-- Recreate observable UI/UX and behavior in **new** Kotlin or Unity source.
-- Do not dump smali, jadx Java, IL2CPP, or minified bundles into the project folder as the app source.
-- Do not copy signing keys, tokens, DRM, or another publisher's `google-services.json`.
-- Do not bypass licensing, paywalls, authentication, or integrity checks.
-- Do not present the result as the original source.
-- Third-party art/fonts/audio without a license → original placeholders + gap report.
-
-Owned, non-secret resources **may** be copied when the user has rights: launcher icons, images, colors, strings, fonts they created. Record each copy in `RECONSTRUCTION_STATUS.md`.
+- Recreate UI/UX and behavior in **new** Kotlin or Unity source
+- Do not dump smali, IL2CPP, or proprietary bundles into the project folder
+- Do not copy signing keys or third-party branded assets without rights
 
 ## Reconstruction order
 
-Build and smoke-check after each major slice:
-
 1. App startup / theme
-2. Navigation / routes
-3. Main screen
-4. Shared UI components
-5. Local state / storage
-6. Individual features
-7. Network layer (owned APIs or clearly marked mocks)
-8. Background / native integrations
-9. Error / loading / empty states
-10. Visual refinement
-11. Debug build validation
-
-## What to port vs rewrite
-
-| From `project/` | Action |
-|-----------------|--------|
-| `res/values/colors.xml`, `strings.xml`, `themes` (native) | Port into Kotlin Compose theme or Unity UI if owned |
-| Layout XML (native) | Recreate as Compose screens or Unity UI — do not keep smali |
-| Images/fonts from decompiled assets | Copy only owned assets into `{project_folder}/` |
-| Activities / route names | Recreate equivalent screens/scenes and navigation |
-| API hosts the user owns | Wire with new client code; keep secrets out of the repo |
-| Unknown backends | Mock adapters, marked `MOCK` |
-| `.so` / IL2CPP / engine data | Do not copy |
+2. Navigation / scenes
+3. Main screen / core loop
+4. Shared components
+5. Features, storage, networking
+6. Polish and debug build validation
 
 ## Outputs
 
 Update `{project_folder}/` plus:
 
-- `{project_folder}/RECONSTRUCTION_STATUS.md` — what was implemented, asset copies, mocks
-- `{project_folder}/GAP_REPORT.md` — reference behavior not yet rebuilt
-- `{project_folder}/BUILD_VALIDATION.md` — commands run, result, crash notes
+- `{project_folder}/RECONSTRUCTION_STATUS.md`
+- `{project_folder}/GAP_REPORT.md`
+- `{project_folder}/BUILD_VALIDATION.md`
 
 ## Quality gates
 
-- `{project_folder}/` still compiles (Kotlin) or builds in Unity
-- App has a defined route/screen for every implemented flow
-- No secrets in source or resources
-- Permissions are minimized and justified (do not inherit the dump's dangerous permissions by default)
-- Missing work is listed in the gap report
+- Project still builds (Kotlin compile or Unity APK)
+- No secrets in source
+- Template base in `project-template/` remains unchanged
 
 ## Next stage
 
