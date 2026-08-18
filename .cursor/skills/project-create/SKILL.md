@@ -1,94 +1,103 @@
 ---
 name: project-create
 description: >-
-  Creates a clean buildable app in new-project/ by copying the matching
-  Flutter or React Native template from project-template/ after Stage 1
-  analysis. Use when the user asks to create the new project, scaffold,
-  copy the template, Stage 2, or project-create.
+  Stage 2 — copies kotlin_app_template or unity_app_template from project-template/
+  into a named folder at the workspace root after Stage 1 analysis. Game → Unity;
+  everything else → Kotlin. Use when the user asks to create, scaffold, copy
+  the template, Stage 2, or project-create.
 ---
 
 # PROJECT_CREATE (Stage 2)
 
-Act as a senior Android scaffolding engineer. Build a **dummy but compiling** project that matches Stage 1 technology. Reconstruction of features is Stage 3.
+Act as a senior scaffolding engineer. **Copy only** — do not invent a new toolchain. Feature reconstruction is Stage 3.
 
-## Inputs
+## Prerequisites
 
-Required:
+Run [project-analyze](../project-analyze/SKILL.md) first. Required inputs:
 
 - `analysis/analysis-report.md`
 - `analysis/technology-detection.json`
 - `analysis/reconstruction-plan.md`
 
-If those files are missing, run [project-analyze](../project-analyze/SKILL.md) first.
+If those files are missing, run Stage 1 before continuing.
 
-## Template map
+## Template selection (strict — only two)
 
-| `detected_technology` | Action |
-|-----------------------|--------|
-| `flutter` | Copy `project-template/flutter_app_template` → `new-project/` |
-| `react_native` | Copy `project-template/react_native_app_template` → `new-project/` |
-| `kotlin` | Copy `project-template/kotlin_app_template` → `new-project/` |
-| `java` | Copy `project-template/kotlin_app_template` → `new-project/` (pure Kotlin starter; rewrite in Java in Stage 3 only if required) |
-| `ionic` / `capacitor` / `cordova` | Scaffold with the official Ionic/Capacitor CLI into `new-project/`. |
-| `unity` / `unreal` / `godot` / `maui` / `unknown` | Do **not** guess. Write `new-project/PROJECT_STATUS.md` explaining why a mobile template was not copied. Stop. |
+| Analysis result | Template to copy |
+|-----------------|------------------|
+| `app_category` = **game** OR `is_game` = true OR `recommended_template` = `unity_app_template` | `project-template/unity_app_template` |
+| **Everything else** | `project-template/kotlin_app_template` |
 
-## Copy rules (Flutter / RN)
+Do **not** use Flutter, React Native, or any other template. Do **not** scaffold from CLI unless the user explicitly overrides the pipeline.
+
+## Project folder name
+
+Copy into a **new folder at the workspace root** named by the user or by analysis:
+
+- Prefer the name the user gives in chat (e.g. `expense tracker`, `calculator`, `2D game`).
+- If none given, use `suggested_project_folder` from `technology-detection.json`.
+- Normalize to a safe folder name (spaces → hyphens, lowercase): `expense-tracker`, `calculator`, `2d-game`.
+
+**Do not** use `new-project/` unless the user explicitly asks for that name.
+
+## Copy command
 
 Run from the workspace root:
 
 ```powershell
-powershell -File .cursor/skills/project-create/scripts/copy-template.ps1 -Technology flutter
+powershell -File .cursor/skills/project-create/scripts/copy-template.ps1 -Technology kotlin -ProjectName expense-tracker
 # or
-powershell -File .cursor/skills/project-create/scripts/copy-template.ps1 -Technology react_native
-# or
-powershell -File .cursor/skills/project-create/scripts/copy-template.ps1 -Technology kotlin
+powershell -File .cursor/skills/project-create/scripts/copy-template.ps1 -Technology unity -ProjectName 2d-game
 ```
 
-The script **replaces** `new-project/` and excludes `node_modules`, `build`, `.dart_tool`, `.gradle`, `.idea`, `.cxx`, `Pods`.
+`-Technology` must be `kotlin` or `unity` and must match Stage 1's `recommended_template`.
 
-Do not copy those directories by hand. The RN template's `node_modules` and Android build trees are huge and must stay out of `new-project/`.
+The script copies the template into `{ProjectName}/` and excludes build caches (`build`, `.gradle`, `Library`, `Temp`, `Logs`, `node_modules`, `.idea`, `.cxx`, etc.).
 
-## After copy — customize, do not clone identity blindly
+Do not copy those directories by hand.
+
+## After copy — minimal customization only
 
 Keep the template's **debug** signing. Never copy keystores/certs from `project/`.
 
-Set display name from the analyzed app label when the user owns the app.
+1. **Kotlin:** ensure `{ProjectName}/local.properties` has `sdk.dir`. Optionally set app label, `applicationId`, and package from analysis when the user owns the app.
+2. **Unity:** set product name in README / ProjectSettings notes; open in Unity Editor to refresh if needed.
+3. Leave the template's starter screen/scene — do not paste decompiled code.
 
-**applicationId / namespace / bundle id:**
-
-- If the user owns this package and needs the same Play identity, keep the analyzed applicationId.
-- If ownership is unconfirmed, or the id belongs to another publisher, generate a new unique id and document it. Do not impersonate.
-
-Then:
-
-1. Flutter: `flutter pub get` in `new-project/`. Optionally rename `pubspec.yaml` `name` and Android `applicationId`/`namespace`.
-2. React Native: `npm install` in `new-project/` (never copy `node_modules`).
-3. Kotlin native: ensure `local.properties` has `sdk.dir`. Optionally rename package/`applicationId`/app label.
-4. Leave a working Hello/diagnostic screen from the template.
-
-Add empty layers only as stubs if the reconstruction plan needs them (e.g. `lib/screens/`, `src/screens/`, `src/services/`) — no fake business logic.
+Add empty stub folders only if the reconstruction plan needs them (`ui/screens/`, `Assets/Scripts/Game/`). No fake business logic.
 
 ## Validate build (required before Stage 3)
 
-From `new-project/`:
+From `{ProjectName}/`:
 
-- Flutter: `flutter build apk --debug`
-- React Native Android: `npm run android` is optional; required compile check is `cd android; .\gradlew.bat assembleDebug`
-- Kotlin native: `.\gradlew.bat assembleDebug` from `new-project/`
+- **Kotlin:** `.\gradlew.bat assembleDebug`
+- **Unity:** confirm project opens in Unity Editor; Android export setup documented in template README (full IL2CPP build requires Unity Hub)
 
-Fix scaffold errors until compile succeeds. Do not start Stage 3 on a broken project.
+Fix scaffold errors until the Kotlin project compiles. Do not start Stage 3 on a broken Kotlin scaffold.
 
 ## Outputs
 
-- `new-project/` (buildable)
-- `new-project/README.md` — technology, toolchain, structure, build/run commands, unresolved items
-- `new-project/PROJECT_STATUS.md` — copied template path, applicationId decision, build command used, pass/fail, next Stage 3 steps
+- `{ProjectName}/` — copied template (buildable for Kotlin)
+- `{ProjectName}/README.md` — update or append: technology choice, folder name, build/run commands
+- `{ProjectName}/PROJECT_STATUS.md` — template copied, `applicationId`/product name decision, build command, pass/fail, next Stage 3 steps
+
+Also write `analysis/project-create-status.json`:
+
+```json
+{
+  "project_folder": "expense-tracker",
+  "template": "kotlin_app_template|unity_app_template",
+  "copy_source": "project-template/kotlin_app_template",
+  "build_validated": true,
+  "build_command": ".\\gradlew.bat assembleDebug"
+}
+```
 
 ## Do not
 
-- Copy decompiled Java/Kotlin/smali/Dart/JS into the scaffold
-- Copy signing keys, `google-services.json` from another publisher, tokens, or proprietary `.so` binaries
-- Invent source that Stage 1 did not support
+- Copy decompiled smali, jadx output, IL2CPP binaries, or proprietary bundles into the new folder
+- Copy signing keys, tokens, or another publisher's `google-services.json`
+- Copy third-party icons, logos, or branded assets from `project/` without confirmed ownership
 
 ## Next stage
 

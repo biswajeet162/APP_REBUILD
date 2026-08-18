@@ -1,64 +1,84 @@
 # Technology detection signatures
 
-Inspect `project/` (apktool, jadx, Flutter/RN extract, or mixed). One strong hit can be enough for **high** confidence; weak/mixed hits stay **medium/low**.
+Inspect `project/` (apktool, jadx, engine extract, or mixed). One strong hit can be enough for **high** confidence; weak/mixed hits stay **medium/low**.
 
-## Flutter — `recommended_template`: `flutter_app_template`
+## Stage 2 template rule (strict)
 
-High-confidence files:
+Only two templates exist. Stage 1 must set `recommended_template` using **app category**, not the original engine alone:
 
-- `libflutter.so`, `libapp.so`
-- `assets/flutter_assets/`
-- `kernel_blob.bin`, `isolate_snapshot_data`, `vm_snapshot_data`
-- `AssetManifest.json`, `FontManifest.json` under flutter assets
-- `NOTICES.Z` / `NOTICES` in flutter assets
+| Condition | `recommended_template` |
+|-----------|------------------------|
+| `app_category` = **game** | `unity_app_template` |
+| `app_category` = **non_game** | `kotlin_app_template` |
 
-Notes: release Flutter almost never yields recoverable Dart. Plan UI reconstruction from assets, strings, and observable structure — not Dart recovery.
+Record the **original** technology in `detected_technology` for the report. Stage 2 always copies Kotlin or Unity as above.
 
-## React Native — `recommended_template`: `react_native_app_template`
+---
 
-High-confidence files:
+## Game detection — sets `app_category`: **game**
 
-- `index.android.bundle` / `assets/index.android.bundle`
-- `libreactnativejni.so`, `libhermes.so`, `libjsc.so`, `libreactnative.so`
-- `AndroidManifest` activity extending React Activity
-- Readable JS/TS with `react-native` imports (jadx sometimes extracts the bundle)
+High-confidence markers (any engine):
 
-Notes: Hermes bytecode is often not human-readable. If only bytecode exists, reconstruct screens from native resources + inferred navigation, and mark JS as lost.
+- `libunity.so`, `libil2cpp.so`, `libmain.so` (Unity IL2CPP)
+- `assets/bin/Data/`, `global-metadata.dat`, `data.unity3d`, `unity_builtin_extra`
+- `libUE4.so`, `UnrealEngine`, `.pak` assets (Unreal)
+- `libgodot.so`, `.pck` / `.gdc` game packs (Godot)
+- Play Store category clues, game-style activities, score/level/progress strings
+- Heavy OpenGL/Vulkan game rendering libs without a non-game UI shell
 
-## Native Android (Kotlin/Java) — `recommended_template`: `kotlin_app_template`
+If multiple game engines appear, pick the **runtime** engine for `detected_technology` and still recommend `unity_app_template` for Stage 2.
+
+---
+
+## Non-game — sets `app_category`: **non_game** → `kotlin_app_template`
+
+Utilities, finance, social, productivity, tools, browsers, etc. Even when the original stack was:
+
+### Flutter (original tech only — Stage 2 still Kotlin)
+
+- `libflutter.so`, `libapp.so`, `assets/flutter_assets/`
+- `AssetManifest.json`, `FontManifest.json`
+
+### React Native (original tech only — Stage 2 still Kotlin)
+
+- `index.android.bundle`, `libreactnative.so`, `libhermes.so`
+- Manifest activity extending React Activity
+
+### Native Android (original tech — Stage 2 Kotlin)
 
 - `AndroidManifest.xml` + `res/` + `smali/` or jadx `sources/`
-- No Flutter/RN/engine libs
-- Kotlin (`kotlinx`, `.kt`) vs Java from source/smali patterns
+- Kotlin (`kotlinx`, `.kt`) or Java patterns
 
-Stage 2 copies `project-template/kotlin_app_template` (pure Kotlin + Jetpack Compose). Use Java only in Stage 3 if the analyzed app was Java-only and the user requires it.
+### Ionic / Capacitor / Cordova (original tech — Stage 2 still Kotlin)
 
-## Ionic / Capacitor / Cordova — `recommended_template`: `none` (CLI scaffold)
+- `capacitor.config.json`, `cordova.js`, `www/` web assets
 
-- `capacitor.config.json` / `capacitor.config.ts`
-- `cordova.js`, `cordova_plugins.js`
-- `www/` or `public/` with Ionic/Angular/Vue web assets
-- `IonicModule` / `ion-` tags in HTML
+### .NET MAUI / Xamarin (original tech — Stage 2 still Kotlin)
 
-## Unity — `recommended_template`: `none`
+- `libmonodroid.so`, `assemblies/*.dll`
 
-- `libil2cpp.so`, `libunity.so`
-- `assets/bin/Data/`, `global-metadata.dat`, `data.unity3d`, `unity_builtin_extra`
+---
 
-Do not copy IL2CPP/game data into the new project. Flag as engine content that needs a real Unity project and licensed assets.
+## Branding, styling, and copyright observations
 
-## Unreal — `recommended_template`: `none`
+Document paths and descriptions; do **not** copy binary assets into `analysis/`.
 
-- `libUE4.so`, `UnrealEngine`, `.pak` assets
+| What to look for | Where |
+|------------------|--------|
+| Launcher / adaptive icons | `res/mipmap-*`, `res/drawable*` |
+| In-app logos, splash | `res/drawable*`, `assets/` |
+| App name & brand strings | `res/values/strings.xml`, manifest `android:label` |
+| Color palettes & themes | `res/values/colors.xml`, `themes.xml`, `styles.xml` |
+| Custom fonts | `assets/fonts/`, `res/font/` |
+| Licensed media | `assets/audio/`, `assets/video/`, raw resources |
+| Third-party marks | Google/Facebook/ad SDK branding in drawables or strings |
 
-## Godot — `recommended_template`: `none`
+For each item, note: path, description, and **owned | third_party | unknown**.
 
-- `libgodot.so`, `.pck` / `.zip` game pack
-
-## .NET MAUI / Xamarin — `recommended_template`: `none`
-
-- `libmonodroid.so`, `assemblies/*.dll`, `Xamarin.*`
+---
 
 ## Conflicting signals
 
-If both Flutter and RN markers exist, list both, pick the **runtime** engine (the `.so` that actually loads), and keep confidence **medium**.
+- Game + utility shell → prefer **game** if IL2CPP/Unity/Unreal/Godot runtime loads.
+- Flutter/RN + native-only UI → record both; `recommended_template` still follows game vs non-game rule.
+- Unknown with low confidence → finish Stage 1; default `recommended_template` to `kotlin_app_template` and mark confidence **low** in the report.

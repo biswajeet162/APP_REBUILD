@@ -1,27 +1,36 @@
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet("flutter", "react_native", "kotlin")]
-    [string]$Technology
+    [ValidateSet("kotlin", "unity")]
+    [string]$Technology,
+
+    [Parameter(Mandatory = $true)]
+    [string]$ProjectName
 )
 
 $ErrorActionPreference = "Stop"
 
 $templateMap = @{
-    flutter      = "project-template\flutter_app_template"
-    react_native = "project-template\react_native_app_template"
-    kotlin       = "project-template\kotlin_app_template"
+    kotlin = "project-template\kotlin_app_template"
+    unity  = "project-template\unity_app_template"
 }
 
 $workspace = (Get-Location).Path
 $src = Join-Path $workspace $templateMap[$Technology]
-$dst = Join-Path $workspace "new-project"
+
+# Normalize folder name: trim, lowercase, spaces/underscores -> hyphens
+$safeName = ($ProjectName.Trim() -replace '[\\\/:*?"<>|]', '-' -replace '[\s_]+', '-').ToLower()
+if ([string]::IsNullOrWhiteSpace($safeName)) {
+    throw "ProjectName is empty after normalization."
+}
+
+$dst = Join-Path $workspace $safeName
 
 if (-not (Test-Path -LiteralPath $src)) {
     throw "Template not found: $src"
 }
 
 if (Test-Path -LiteralPath $dst) {
-    Remove-Item -LiteralPath $dst -Recurse -Force
+    throw "Destination already exists: $dst - choose another ProjectName or remove the folder first."
 }
 
 New-Item -ItemType Directory -Path $dst | Out-Null
@@ -34,7 +43,12 @@ $excludeDirs = @(
     ".idea",
     ".cxx",
     "Pods",
-    ".git"
+    ".git",
+    "Library",
+    "Temp",
+    "Logs",
+    "obj",
+    "UserSettings"
 )
 
 $robocopyArgs = @(
@@ -43,7 +57,7 @@ $robocopyArgs = @(
     "/E",
     "/XD"
 ) + $excludeDirs + @(
-    "/XF", "*.iml",
+    "/XF", "*.iml", "local.properties",
     "/NFL", "/NDL", "/NJH", "/NJS", "/nc", "/ns", "/np"
 )
 
@@ -55,5 +69,5 @@ if ($code -ge 8) {
     throw "robocopy failed with exit code $code"
 }
 
-Write-Host "Copied $Technology template -> new-project/ (robocopy code $code)"
+Write-Host "Copied $Technology template -> $safeName/ (robocopy code $code)"
 exit 0

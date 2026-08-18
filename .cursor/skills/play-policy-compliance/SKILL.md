@@ -1,7 +1,7 @@
 ---
 name: play-policy-compliance
 description: >-
-  Audits the reconstructed new-project/ against current Google Play policy,
+  Audits the reconstructed project folder against current Google Play policy,
   IP/provenance, privacy, permissions, and release readiness. Audit only —
   never review-evasion. Use when the user asks for Play Store compliance,
   Data Safety, impersonation, Stage 4, or play-policy-compliance.
@@ -15,7 +15,7 @@ Senior Android release-compliance auditor. **Audit and remediate the new app so 
 
 - `project/` (authorized reference)
 - `analysis/` Stage 1 files
-- `new-project/` Stages 2–3
+- `{project_folder}/` from Stages 2–3 (see `analysis/project-create-status.json`)
 - Optional listing, privacy policy, Data Safety answers
 
 ## Hard rules
@@ -52,7 +52,7 @@ Remediation must be legitimate (replace with original/licensed material, remove 
 
 1. **Ownership / originality** — source, UI, assets, native libs, SDKs, listing art. Unknown provenance = BLOCKER until resolved.
 2. **Package / identity** — applicationId, label, icon, developer name. Flag another publisher's identity.
-3. **Signing** — no reference keystore in `new-project/`; debug key ≠ production; do not print secrets.
+3. **Signing** — no reference keystore in `{project_folder}/`; debug key ≠ production; do not print secrets.
 4. **Version / SDK** — versionCode/Name, min/target/compile SDK, AAB. Do not suggest dummy version bumps for evasion. Check current target API from official docs.
 5. **Branding / impersonation** — trademarks, "mod/unlocked/cracked/premium free/official [other brand]".
 6. **SDKs / ads / analytics / billing / consent** — inventory; remove copied ad/Firebase IDs; stubbed pay/ads UI must be fixed or removed.
