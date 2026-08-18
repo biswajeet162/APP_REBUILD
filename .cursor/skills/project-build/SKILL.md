@@ -26,9 +26,9 @@ If `{project_folder}/` is missing, create it via Stage 2 before writing code.
 
 ## Inputs
 
-- `project/` (authorized reference dump, if rebuilding from decompile)
-- `analysis/*` (when available)
-- `{project_folder}/` — the copied Kotlin or Unity project
+- `project/` (authorized source of any technology, if rebuilding)
+- `analysis/*` especially `rebuild-metadata.json` (the Stage 1 picture)
+- `{project_folder}/` — the copied Kotlin or Unity project with Stage 2 stubs already applied
 
 ## Unity build workflow
 

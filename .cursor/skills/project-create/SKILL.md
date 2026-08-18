@@ -1,16 +1,16 @@
 ---
 name: project-create
 description: >-
-  Stage 2 — copies kotlin_app_template or unity_app_template from project-template/
-  into a named folder at the workspace root. Game → Unity; everything else → Kotlin.
-  For Unity: ask the user for the game name, copy the base template, never edit the
-  template in place. Use when the user asks to create, scaffold, copy the template,
-  new Unity project, new game, Stage 2, or project-create.
+  Stage 2 — copies kotlin_app_template or unity_app_template, then applies
+  Stage 1 rebuild metadata (architecture, models, network stubs, screens/scenes,
+  identifiers) into a named folder. Game → Unity; everything else → Kotlin.
+  Use when the user asks to create, scaffold, copy the template, new Unity
+  project, new game, Stage 2, or project-create.
 ---
 
 # PROJECT_CREATE (Stage 2)
 
-Act as a senior scaffolding engineer. **Copy only** — do not invent a new toolchain. Feature reconstruction is Stage 3.
+Act as a senior scaffolding engineer. Copy the matching template, then **apply the Stage 1 picture**. Do not invent a new toolchain. Full feature reconstruction is Stage 3.
 
 ## Golden rule
 
@@ -18,22 +18,29 @@ Act as a senior scaffolding engineer. **Copy only** — do not invent a new tool
 
 ## Prerequisites
 
-Run [project-analyze](../project-analyze/SKILL.md) first **when rebuilding from a decompiled dump in `project/`**.
-
-If the user explicitly asks to **create a new Unity game** (no dump yet), skip analysis and go straight to **Ask name → Copy template**.
+Run [project-analyze](../project-analyze/SKILL.md) first **when rebuilding from `project/`**.
 
 Required inputs (when analysis ran):
 
+- `analysis/rebuild-metadata.json` — **the picture; apply this**
 - `analysis/analysis-report.md`
 - `analysis/technology-detection.json`
 - `analysis/reconstruction-plan.md`
 
+If `rebuild-metadata.json` is missing, run Stage 1 before creating. Do not scaffold from memory.
+
+If the user explicitly asks to **create a new Unity game** with no source in `project/`, skip analysis and go straight to **Ask name → Copy template** (no metadata to apply).
+
 ## Template selection (strict — only two)
+
+Use the **conclusion** from analysis, not the original source technology.
 
 | Analysis result | Template to copy |
 |-----------------|------------------|
 | `app_category` = **game** OR `is_game` = true OR user asks for Unity/game | `project-template/unity_app_template` |
 | **Everything else** | `project-template/kotlin_app_template` |
+
+A React, iOS, Flutter, Node, or Python source still becomes **Kotlin Android** unless it is a game.
 
 Do **not** use Flutter, React Native, or any other template.
 
@@ -42,10 +49,11 @@ Do **not** use Flutter, React Native, or any other template.
 When creating a **Unity** project:
 
 1. **Ask the user:** “What should the game folder be called?” (e.g. `2d-racer`, `puzzle-game`, `space-shooter`)
-2. If they already gave a name in chat, use it.
+2. If they already gave a name in chat, use it. Else use `suggested_project_folder` from metadata.
 3. Normalize to kebab-case: `2D Racer` → `2d-racer`
 4. Copy `project-template/unity_app_template` → `{game-name}/`
-5. Confirm: “Copied Unity base to `{game-name}/`. We’ll build on top of this.”
+5. Apply `rebuild-metadata.json` (below)
+6. Confirm: “Copied Unity base to `{game-name}/` and applied analysis metadata.”
 
 Do **not** rename or customize the template folder itself. Do **not** skip asking if the name is unclear.
 
@@ -66,15 +74,46 @@ powershell -File .cursor/skills/project-create/scripts/copy-template.ps1 -Techno
 
 The script copies into `{ProjectName}/` and excludes build caches (`Library`, `Temp`, `Logs`, `Builds`, `build`, `.gradle`, etc.).
 
-## After copy — minimal customization only
+## After copy — apply the analysis picture
 
 Keep the template's **debug** signing. Never copy keystores/certs from `project/`.
 
-1. **Kotlin:** ensure `{ProjectName}/local.properties` has `sdk.dir`. Optionally set app label and `applicationId`.
-2. **Unity:** optionally set product name in README; Unity generates `Library/` on first open. The copied project already includes `BuildAndroid.cs` for phone builds. **Before Android builds on Windows, read `project-template/unity_app_template/UNITY_ANDROID_RUNBOOK.md`.**
-3. Leave the starter screen/scene from the template.
+Read `analysis/rebuild-metadata.json` and apply it to `{ProjectName}/`. This is the difference between an empty template and a project that matches the analyzed product.
 
-Add empty stub folders only if needed (`Assets/Scripts/Game/`). No fake business logic in Stage 2.
+### Always apply
+
+1. Display name / product name from `display_name`
+2. Application id / package / bundle hint when present (`application_id_or_bundle`, `target_scaffold.kotlin.package_hint`)
+3. Folder/package skeleton from `architecture` and `target_scaffold`
+4. **Domain model stubs** (data classes / ScriptableObjects / serializable types) matching `domain_models` — fields only, no fake business logic
+5. **Network stubs** matching `network.endpoints` — interfaces/clients with method + path + DTO shapes; no real secrets; mock or empty implementations
+6. **Screen / scene placeholders** matching `ui.screens` and `flows` — named destinations, empty or minimal UI, wired navigation where the template allows
+7. Theme hints (colors/typography) only when they are **owned**, not third-party brands
+8. `{ProjectName}/PROJECT_STATUS.md` listing what metadata was applied vs deferred to Stage 3
+
+### Kotlin specifically
+
+- Ensure `{ProjectName}/local.properties` has `sdk.dir`
+- Set app label and `applicationId` from metadata when valid
+- Create packages from `target_scaffold.kotlin.packages_to_create` (default: `ui`, `data`, `domain`, `network`)
+- Map flows → navigation graph destinations
+- Map models → `domain`/`data` types
+- Map endpoints → Retrofit (or equivalent template API) interfaces
+
+### Unity specifically
+
+- Set product name from metadata
+- Create scenes listed in `target_scaffold.unity.scenes` (or `ui.screens` if scenes are empty)
+- Create script folders from `target_scaffold.unity.script_folders`
+- Stub model types and a thin API/service layer for analyzed network calls
+- **Before Android builds on Windows, read `project-template/unity_app_template/UNITY_ANDROID_RUNBOOK.md`.**
+
+### Do not do in Stage 2
+
+- Full feature implementation (that is Stage 3)
+- Copy source files, smali, IL2CPP, or third-party binaries from `project/`
+- Copy signing keys or another publisher's identity
+- Invent extra screens, models, or APIs that analysis did not record
 
 ## Validate build (required before Stage 3)
 
@@ -83,17 +122,23 @@ From `{ProjectName}/`:
 - **Kotlin:** `.\gradlew.bat assembleDebug`
 - **Unity:** batch build or Unity Editor open; APK via `BuildAndroid.BuildDebugApk` (see template README)
 
+If stubs break the compile, fix types/usings until debug build succeeds. Empty-but-compiling stubs are required.
+
 ## Outputs
 
-- `{ProjectName}/` — copied template
-- `{ProjectName}/PROJECT_STATUS.md` — template copied, build status, next steps
-- `analysis/project-create-status.json` (when analysis exists):
+- `{ProjectName}/` — copied template **with analysis metadata applied**
+- `{ProjectName}/PROJECT_STATUS.md` — template copied, metadata applied, build status, next steps
+- `analysis/project-create-status.json`:
 
 ```json
 {
   "project_folder": "2d-racer",
   "template": "unity_app_template",
   "copy_source": "project-template/unity_app_template",
+  "metadata_applied": true,
+  "metadata_source": "analysis/rebuild-metadata.json",
+  "applied": ["display_name", "models", "network_stubs", "screens"],
+  "deferred_to_stage_3": ["business_logic", "owned_assets"],
   "build_validated": true
 }
 ```
@@ -103,6 +148,7 @@ From `{ProjectName}/`:
 - Edit `project-template/unity_app_template` or `project-template/kotlin_app_template` for a specific game/app
 - Copy decompiled IL2CPP/smali into the new folder
 - Copy signing keys or another publisher's identity
+- Ignore `rebuild-metadata.json` and ship a blank starter
 
 ## Next stage
 
